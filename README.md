@@ -1,7 +1,7 @@
 # helping_functions
- some helping functions on data cleaning for machine learning
+ #some helping functions on data cleaning for machine learning
 
- ezz has many many helping functions which will help you to Analyse data and shortend your time on silly things like impute  missing data and differentiate categorical columns and numerical columns 
+ #ezz has many many helping functions which will help you to Analyse data and shortend your time on silly things like impute  missing data and differentiate categorical #columns and numerical columns 
 
  soo in ezz 
  __init__:
@@ -69,3 +69,6 @@ y: Dependent variable (target).
 method (optional, default='lin_reg'): Method to use for imputation.
 Output Arguments:
 Dictionary containing the train score, test score, predicted values, and index of missing values.
+
+
+if you are on jupyter run "!pip install -r requirements.txt" first and always remember clone that ezz and requirements.txt file in the same folder as your work file is
