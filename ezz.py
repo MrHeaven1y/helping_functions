@@ -6,13 +6,17 @@ from xgboost import XGBRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
+from functools import reduce
 
 class colimp:
     def __init__(self, impute_na=False, numerical_method='mean'):
         self.impute_na = impute_na
         self.numerical_method = numerical_method
 
-    def get_dum(self, df, cate_col=None, num_col=None, target_col=None):
+    def get_dum(self, df, cate_col=None, num_col=None, target_col=''):
+        if target_col:
+            df = df.drop(target_col,axis=1)
         if cate_col is None and num_col is None:
             self.num_cols = list(df.select_dtypes(['int', 'float']).columns)
             self.cate_cols = list(df.select_dtypes(['object']).columns)
@@ -24,7 +28,7 @@ class colimp:
                 self.cate_cols = cate_col
                 print("numerical(1st arg) and categorical(2nd arg) columns are differentiate")
                 return self.num_cols,self.cate_cols
-            elif cate_col is None and num_cols is not None:
+            elif cate_col is None and num_col is not None:
                 self.cate_cols = list(df.select_dtypes(['object']).columns)
                 self.num_cols = num_col
                 print("numerical(1st arg) and categorical(2nd arg) columns are differentiate")
@@ -44,43 +48,71 @@ class colimp:
                     df = df.drop(col, axis=1)
                     print('Succesfully removed {} column.'.format(col))
 
-        dum = pd.get_dummies(df[self.cate_cols], drop_first=drop_first, dtype=dtype, dummy_na=dummy_na)
+        dum = pd.get_dummies(df[dum_cols], drop_first=drop_first, dtype=dtype, dummy_na=dummy_na)
         if concat:
             dum_df = pd.concat([df, dum], axis=1)
-            dum_df = dum_df.drop(self.cate_cols, axis=1)
+            dum_df = dum_df.drop(dum_cols, axis=1)
             return dum_df
         else:
             return dum
-    def scale(self,df,num_cols):
-        mx =[]
-        for i in df[num_cols].columns:
-            mx.append(max(df[i]))
-        for i in range(len(mx)):
-            j = num_cols[i]
-            df[j] = df[j]/mx[i]
-        print('scaling complete!')
-        return df[num_cols]
+    def scale(self,df,num_cols,method='minmax',inv_trans=False):
+        if method=='div':
+            mx =[]
+            def find_max(num_col):
+                m = max(df[num_col])
+                mx.append(m)
+                return mx
+            def Scale(col,val):
+                return df[col]/val
+            def value(val):
+                return df[val]
+            max_list=list(map(find_max,num_cols))[0]
+            return pd.DataFrame(map(Scale,num_cols,max_list)).T
+        elif method=='minmax':
+            global scaler
+            scaler= MinMaxScaler().fit(df[num_cols])
+            df[num_cols] = scaler.transform(df[num_cols])
+            return df[num_cols]
+        elif inv_trans:
+            df[num_cols] = scaler.inverse_transform(df[num_cols])[:, [0]]
+            return df[num_cols]
+        else:
+            print('Unknown method')
+            return None
+    def return_scaler(self):
+        return scaler
+    def extract_scale_cols(self,df,cols):
+        ex_list=[]
+        def Sum(a,b):
+            return a+b
+        def find_col(cols):
+            l=list(df[cols])
+            res = reduce(Sum,l[:10])
+            return res>=100
+        ex_list=list(filter(find_col,cols))
+        return ex_list
     def impute_col(self,df,cate_cols=None, num_cols=None,method='mean',cat_imp=False):
-        if cat_imp:
-            df[cate_cols] = self.catcolimp(df,cate_cols)
         if cate_cols and num_cols is None:
             print('numerical columns is empty')
+        elif cat_imp:
+            df[cate_cols] = self.catcolimp(df,cate_cols)
+            return df[cate_cols]
         elif num_cols is not None:
             if method == 'mean':
                 imputer = SimpleImputer(strategy=method)
                 df[num_cols] = imputer.fit_transform(df[num_cols])
                 print('Done!')
-                return df[num_cols],df[cate_cols]
+                return df[num_cols]
             elif method== 'median':
                 imputer = SimpleImputer(strategy=method)
                 df[num_cols] = imputer.fit_transform(df[num_cols])
                 print('Done!')
-                return df[num_cols],df[cate_cols]
+                return df[num_cols]
             elif method == 'constant':
                 imputer = SimpleImputer(strategy=method)
                 df[num_cols] = imputer.fit_transform(df[num_cols])
                 print('Done!')
-                return df[num_cols],df[cate_cols]
+                return df[num_cols]
             else:
                 print('Method is unknown')
                 return None
@@ -126,12 +158,12 @@ class colimp:
                 preds_test = np.array(model.predict(x_test)).reshape(-1,1)
                 scores = {'train score': mean_squared_error(preds_train,y_train,squared=False), 'test score': mean_squared_error(preds_test, y_test,squared=False), 'preds':model.predict(x[index])[0],'Index': index}
                 return (scores)
-            scores = {
-                'train score': mean_squared_error(preds_train, y_train, squared=False),
-                'test score': mean_squared_error(preds_test, y_test, squared=False),
-                'preds': preds_missing
-            }
-            return scores
+            # scores = {
+            #     'train score': mean_squared_error(preds_train, y_train, squared=False),
+            #     'test score': mean_squared_error(preds_test, y_test, squared=False),
+            #     'preds': preds_missing
+            # }
+            # return scores
         except ValueError:
             print("There's no missing values in x")
 
