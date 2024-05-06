@@ -8,12 +8,11 @@ from sklearn.metrics import mean_squared_error
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 from functools import reduce
-
 class colimp:
     def __init__(self, impute_na=False, numerical_method='mean'):
         self.impute_na = impute_na
         self.numerical_method = numerical_method
-
+        global alphabets
     def get_dum(self, df, cate_col=None, num_col=None, target_col=''):
         if target_col:
             df = df.drop(target_col,axis=1)
@@ -38,7 +37,7 @@ class colimp:
             self.num_cols = num_col
             print("numerical(1st arg) and categorical(2nd arg) columns are differentiate")
             return self.num_cols,self.cate_cols
-    def make_dum(self, df, dum_cols=None, dummy_na=False, dtype=int, drop_first=True, concat=True, drop_na_all=True):
+    def make_dum(self, df, dum_cols=None, dummy_na=False, dtype=int, drop_first=True, concat=False, drop_na_all=True):
         if dum_cols is None:
             dum_cols = self.cate_cols
 
@@ -81,6 +80,11 @@ class colimp:
             return None
     def return_scaler(self):
         return scaler
+    def extract_datetime(self,df,date_col='Date'):
+        df[date_col] = pd.to_datetime(df[date_col])
+        df['Year'] = df['Start_Date'].dt.year
+        df['Month'] = df['Start_Date'].dt.month
+        df['Day'] = df['Start_Date'].dt.day
     def extract_scale_cols(self,df,cols):
         ex_list=[]
         def Sum(a,b):
@@ -92,10 +96,11 @@ class colimp:
         ex_list=list(filter(find_col,cols))
         return ex_list
     def impute_col(self,df,cate_cols=None, num_cols=None,method='mean',cat_imp=False):
-        if cate_cols and num_cols is None:
-            print('numerical columns is empty')
+        if cate_cols is None and num_cols is None:
+            print('numerical columns and categorical columns is empty')
         elif cat_imp:
             df[cate_cols] = self.catcolimp(df,cate_cols)
+            print('Done!')
             return df[cate_cols]
         elif num_cols is not None:
             if method == 'mean':
@@ -120,6 +125,33 @@ class colimp:
         imputer = SimpleImputer(strategy='most_frequent')
         df[cate_cols] = imputer.fit_transform(df[cate_cols])
         return df[cate_cols]
+    def embed(self,df,cols,replace_none=False, none_val='NaN'):
+        def embed_transform(word):
+            alphabets={'a': 0.01,'b': 0.02,'c': 0.03,'d': 0.04,'e': 0.05,'f': 0.06,'g': 0.07,'h': 0.08,'i': 0.09,'j': 0.1,'k': 0.11,'l': 0.12,'m': 0.13,'n': 0.14,'o': 0.15,'p': 0.16,'q': 0.17,'r': 0.18,'s': 0.19,'t': 0.2,'u': 0.21,'v': 0.22,'w': 0.23,'x': 0.24,'y': 0.25,'z': 0.26,' ': 0.27,'_': 0.28,'%': 0.29,'-': 0.3,'@': 0.31,'/': 0.32,'[': 0.33,']': 0.34,'(': 0.35,')': 0.36,'=': 0.37,':': 0.38,';': 0.39,'?': 0.55,'<': 0.41,'>': 0.42,',': 0.43,'|': 0.44,'~': 0.45,'!': 0.46,'*': 0.47,'^': 0.48,'`': 0.49,'",': 0.5,'"': 0.51,'#': 0.52,'$': 0.53,'&': 0.54}
+            set_alpha = set(alphabets)
+            set_word  = set(word)
+            inters = list(set_alpha.intersection(set_word))
+            def d(elem):
+                return alphabets[elem]
+            value_num = list(map(d,inters))
+            value_num.sort(reverse=True)
+            count=0
+            for i in range(1,len(value_num)+1):
+                val = value_num[i-1]
+                p=(i-1)*10+1
+                count += val/(i*p)
+            return count
+        value_none = embed_transform(none_val)
+        names={}
+        if type(cols) !='list':
+            cols = list(cols)
+        for col in cols:
+            names[col] = list(map(embed_transform,df[col]))
+        names_df= pd.DataFrame(names)
+        if replace_none:
+            names_df.replace(value_none,0)
+            return names_df
+        else: return names_df
     def coreimp(self, x, y, method='lin_reg'):
         models=['lin_reg', 'svr', 'xgb']
         x = np.array(x)
@@ -158,32 +190,8 @@ class colimp:
                 preds_test = np.array(model.predict(x_test)).reshape(-1,1)
                 scores = {'train score': mean_squared_error(preds_train,y_train,squared=False), 'test score': mean_squared_error(preds_test, y_test,squared=False), 'preds':model.predict(x[index])[0],'Index': index}
                 return (scores)
-            # scores = {
-            #     'train score': mean_squared_error(preds_train, y_train, squared=False),
-            #     'test score': mean_squared_error(preds_test, y_test, squared=False),
-            #     'preds': preds_missing
-            # }
-            # return scores
         except ValueError:
             print("There's no missing values in x")
-
-
-
-# df = pd.read_csv(data.csv)
-# s = colimp( impute_na=True,numerical_method='constant')
-# cat_col = ['Name',
-#   'Measure',
-#   'Measure Info',
-#   'Geo Type Name',
-#   'Geo Place Name',
-#   'Time Period',
-#   'Start_Date']
-# num_col = ['Unique ID', 'Indicator ID']
-# df1 = df.drop('Message', axis=1).copy()
-# n,c = s.get_dum(df1, num_col= num_col, cate_col=cat_col)
-# df1[n], df1[c] = s.impute_col(df, cate_cols=c,num_cols=n, cat_imp=True)
-# df1[n] = s.scale(df,n)
-# p = s.coreimp(df['Geo Join ID'], df['Data Value'], method='xgb')
 
 
 
