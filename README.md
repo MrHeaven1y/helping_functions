@@ -72,3 +72,12 @@ Dictionary containing the train score, test score, predicted values, and index o
 
 
 if you are on jupyter run "!pip install -r requirements.txt" first and always remember clone that ezz and requirements.txt file in the same folder as your work file is
+
+
+
+update:- 
+add new own small embedding function which will save you from the onehotencoding and give you small dimmensions to train model 
+
+
+![Uploading WhatsApp Image 2024-05-06 at 9.56.38 PM.jpeg…]()
+
