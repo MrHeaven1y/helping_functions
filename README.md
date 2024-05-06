@@ -79,5 +79,6 @@ update:-
 add new own small embedding function which will save you from the onehotencoding and give you small dimmensions to train model 
 
 
-![Uploading WhatsApp Image 2024-05-06 at 9.56.38 PM.jpeg…]()
+![WhatsApp Image 2024-05-06 at 9 56 38 PM](https://github.com/MrHeaven1y/helping_functions/assets/165138329/20577d9f-8642-4a89-ac77-65ed0ba1168b)
+
 
