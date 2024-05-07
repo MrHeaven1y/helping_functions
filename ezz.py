@@ -125,8 +125,8 @@ class colimp:
         imputer = SimpleImputer(strategy='most_frequent')
         df[cate_cols] = imputer.fit_transform(df[cate_cols])
         return df[cate_cols]
-    def embed(self,df,cols,replace_none=False, none_val='NaN'):
-        def embed_transform(word):
+    def embed_transform(self,word):
+            word = word.lower()
             alphabets={'a': 0.01,'b': 0.02,'c': 0.03,'d': 0.04,'e': 0.05,'f': 0.06,'g': 0.07,'h': 0.08,'i': 0.09,'j': 0.1,'k': 0.11,'l': 0.12,'m': 0.13,'n': 0.14,'o': 0.15,'p': 0.16,'q': 0.17,'r': 0.18,'s': 0.19,'t': 0.2,'u': 0.21,'v': 0.22,'w': 0.23,'x': 0.24,'y': 0.25,'z': 0.26,' ': 0.27,'_': 0.28,'%': 0.29,'-': 0.3,'@': 0.31,'/': 0.32,'[': 0.33,']': 0.34,'(': 0.35,')': 0.36,'=': 0.37,':': 0.38,';': 0.39,'?': 0.55,'<': 0.41,'>': 0.42,',': 0.43,'|': 0.44,'~': 0.45,'!': 0.46,'*': 0.47,'^': 0.48,'`': 0.49,'",': 0.5,'"': 0.51,'#': 0.52,'$': 0.53,'&': 0.54}
             set_alpha = set(alphabets)
             set_word  = set(word)
@@ -138,20 +138,39 @@ class colimp:
             count=0
             for i in range(1,len(value_num)+1):
                 val = value_num[i-1]
-                p=(i-1)*10+1
-                count += val/(i*p)
+                if val<=0.009:
+                    count+=val
+                elif val>=0.1:
+                    count+=val/10
             return count
-        value_none = embed_transform(none_val)
+    def embed(self,df,cols,replace_none=False, none_val='NaN'):
+        value_none = self.embed_transform(none_val)
         names={}
         if type(cols) !='list':
             cols = list(cols)
         for col in cols:
-            names[col] = list(map(embed_transform,df[col]))
+            names[col] = list(map(self.embed_transform,df[col]))
         names_df= pd.DataFrame(names)
         if replace_none:
             names_df.replace(value_none,0)
             return names_df
         else: return names_df
+    def color_conversion(self,w):
+        w=w.lower()
+        l=len(w)
+        p=self.embed_transform(w)
+        k = p*(10**l)
+        b=[]
+        for i in range(3):
+            b.append(int(k/(2+i)))
+        def sigmoid(x):
+            import numpy as np
+            return 1/(1+np.exp(-x))
+        def color_codes(b):
+            b1=255*sigmoid(b)
+            return int(b1)
+        b_vec=list(map(color_codes,b))
+        return b_vec
     def coreimp(self, x, y, method='lin_reg'):
         models=['lin_reg', 'svr', 'xgb']
         x = np.array(x)
