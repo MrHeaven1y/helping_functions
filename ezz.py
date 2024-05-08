@@ -126,23 +126,32 @@ class colimp:
         df[cate_cols] = imputer.fit_transform(df[cate_cols])
         return df[cate_cols]
     def embed_transform(self,word):
-            word = word.lower()
-            alphabets={'a': 0.01,'b': 0.02,'c': 0.03,'d': 0.04,'e': 0.05,'f': 0.06,'g': 0.07,'h': 0.08,'i': 0.09,'j': 0.1,'k': 0.11,'l': 0.12,'m': 0.13,'n': 0.14,'o': 0.15,'p': 0.16,'q': 0.17,'r': 0.18,'s': 0.19,'t': 0.2,'u': 0.21,'v': 0.22,'w': 0.23,'x': 0.24,'y': 0.25,'z': 0.26,' ': 0.27,'_': 0.28,'%': 0.29,'-': 0.3,'@': 0.31,'/': 0.32,'[': 0.33,']': 0.34,'(': 0.35,')': 0.36,'=': 0.37,':': 0.38,';': 0.39,'?': 0.55,'<': 0.41,'>': 0.42,',': 0.43,'|': 0.44,'~': 0.45,'!': 0.46,'*': 0.47,'^': 0.48,'`': 0.49,'",': 0.5,'"': 0.51,'#': 0.52,'$': 0.53,'&': 0.54}
-            set_alpha = set(alphabets)
-            set_word  = set(word)
-            inters = list(set_alpha.intersection(set_word))
-            def d(elem):
+        word = word.lower()
+        alphabets={'a': 1,'b': 2,'c': 3,'d': 4,'e': 5,'f': 6,'g': 7,'h': 8,'i': 9,'j': 10,'k': 11,'l': 12,'m': 13,'n': 14,'o': 15,'p': 16,'q': 17,'r': 18,'s': 19,'t': 20,'u': 21,'v': 22,'w': 23,'x': 24,'y': 25,'z': 26,' ': 27,'_': 28,'%': 29,'-': 30,'@': 31,'/': 32,'[': 33,']': 34,'(': 35,')': 36,'=': 37,':': 38,';': 39,'?': 55,'<': 41,'>': 42,',': 43,'|': 44,'~': 45,'!': 46,'*': 47,'^': 48,'`': 49,"'": 50,'"': 51,'#': 52,'$': 53,'&': 54}
+        set_alpha = set(alphabets)
+        set_word  = set(word)
+        inters = list(set_alpha.intersection(set_word))
+        if inters==set():
+            print('symbols are not matched')
+            return None
+        else:        
+            def alpha_return(elem):
                 return alphabets[elem]
-            value_num = list(map(d,inters))
-            value_num.sort(reverse=True)
-            count=0
-            for i in range(1,len(value_num)+1):
-                val = value_num[i-1]
-                if val<=0.009:
-                    count+=val
-                elif val>=0.1:
-                    count+=val/10
-            return count
+            def word_return(word):
+                words=[]
+                for i in range(len(word)):
+                    words.append(word[i:i+1])
+                return words
+            value_num = list(map(alpha_return,word_return(word)))
+            embeded=0
+            for i in range(len(value_num)):
+                p=10**(i+1)
+                val = value_num[i]
+                if val>9:
+                    embeded+=val/(p*10)
+                else:
+                    embeded+=val/p
+            return embeded
     def embed(self,df,cols,replace_none=False, none_val='NaN'):
         value_none = self.embed_transform(none_val)
         names={}
@@ -156,20 +165,17 @@ class colimp:
             return names_df
         else: return names_df
     def color_conversion(self,w):
-        w=w.lower()
         l=len(w)
         p=self.embed_transform(w)
         k = p*(10**l)
         b=[]
         for i in range(3):
-            b.append(int(k/(2+i)))
-        def sigmoid(x):
-            import numpy as np
-            return 1/(1+np.exp(-x))
+            b.append(k/(2+i))
         def color_codes(b):
-            b1=255*sigmoid(b)
+            b1=255*np.sin(b)
             return int(b1)
-        b_vec=list(map(color_codes,b))
+        b_list=list(map(color_codes,b))
+        b_vec=list(map(lambda x: -x if x<0 else x,b_list))
         return b_vec
     def coreimp(self, x, y, method='lin_reg'):
         models=['lin_reg', 'svr', 'xgb']
@@ -211,6 +217,5 @@ class colimp:
                 return (scores)
         except ValueError:
             print("There's no missing values in x")
-
 
 
