@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 from functools import reduce
-class colimp:
+class Colimp:
     def __init__(self, impute_na=False, numerical_method='mean'):
         self.impute_na = impute_na
         self.numerical_method = numerical_method
@@ -126,12 +126,13 @@ class colimp:
         df[cate_cols] = imputer.fit_transform(df[cate_cols])
         return df[cate_cols]
     def embed_transform(self,word):
+        word=str(word)
         word = word.lower()
-        alphabets={'a': 1,'b': 2,'c': 3,'d': 4,'e': 5,'f': 6,'g': 7,'h': 8,'i': 9,'j': 10,'k': 11,'l': 12,'m': 13,'n': 14,'o': 15,'p': 16,'q': 17,'r': 18,'s': 19,'t': 20,'u': 21,'v': 22,'w': 23,'x': 24,'y': 25,'z': 26,' ': 27,'_': 28,'%': 29,'-': 30,'@': 31,'/': 32,'[': 33,']': 34,'(': 35,')': 36,'=': 37,':': 38,';': 39,'?': 55,'<': 41,'>': 42,',': 43,'|': 44,'~': 45,'!': 46,'*': 47,'^': 48,'`': 49,"'": 50,'"': 51,'#': 52,'$': 53,'&': 54}
+        alphabets={'a': 1,'b': 2,'c': 3,'d': 4,'e': 5,'f': 6,'g': 7,'h': 8,'i': 9,'j': 10,'k': 11,'l': 12,'m': 13,'n': 14,'o': 15,'p': 16,'q': 17,'r': 18,'s': 19,'t': 20,'u': 21,'v': 22,'w': 23,'x': 24,'y': 25,'z': 26,' ': 27,'_': 28,'%': 29,'-': 30,'@': 31,'/': 32,'[': 33,']': 34,'(': 35,')': 36,'=': 37,':': 38,';': 39,'?': 55,'<': 41,'>': 42,',': 43,'|': 44,'~': 45,'!': 46,'*': 47,'^': 48,'`': 49,"'": 50,'"': 51,'#': 52,'$': 53,'&': 54,'0':55,'1':56,'2':57,'3':58,'4':59,'5':60,'6':61,'7':62,'8':63,'9':64,'+':65,'.':66,'µ':67}
         set_alpha = set(alphabets)
         set_word  = set(word)
         inters = list(set_alpha.intersection(set_word))
-        if inters==set():
+        if inters==set() and set_word not in set_alpha:
             print('symbols are not matched')
             return None
         else:        
@@ -142,15 +143,16 @@ class colimp:
                 for i in range(len(word)):
                     words.append(word[i:i+1])
                 return words
-            value_num = list(map(alpha_return,word_return(word)))
+            words = word_return(word)
+            value_num = list(map(alpha_return,words))
             embeded=0
             for i in range(len(value_num)):
                 p=10**(i+1)
                 val = value_num[i]
-                if val>9:
-                    embeded+=val/(p*10)
-                else:
-                    embeded+=val/p
+                # if val>=10:
+                    # embeded+=val/(p*10)
+                # else:
+                embeded+=val/p
             return embeded
     def embed(self,df,cols,replace_none=False, none_val='NaN'):
         value_none = self.embed_transform(none_val)
@@ -161,9 +163,10 @@ class colimp:
             names[col] = list(map(self.embed_transform,df[col]))
         names_df= pd.DataFrame(names)
         if replace_none:
-            names_df.replace(value_none,0)
+            names_df=names_df.replace(value_none,0.0)
             return names_df
-        else: return names_df
+        else:
+            return names_df
     def color_conversion(self,w):
         l=len(w)
         p=self.embed_transform(w)
