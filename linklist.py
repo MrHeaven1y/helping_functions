@@ -54,11 +54,33 @@ class LinkedList:
             new_node.next=temp_node.next
             temp_node.next=new_node
             self.length += 1
-    def get(self,index):
+    def get(self,index,node=False):
         temp_node=self.head
         for _ in range(index):
             temp_node=temp_node.next
+        if node:
+            return temp_node
         return temp_node.value
+    def set(self,index,value):
+        new_node=Node(value)
+        if index==0:
+            new_node.next=self.head.next
+            self.head=new_node
+        if index==-1:
+            # prev_node = self.get(self.length - 2, node=True)
+            # prev_node.next = new_node
+            # self.tail=new_node
+            pass
+            # current_node = self.tail
+            # current_node.next=None
+        if index<-1 or index>=self.length:
+            raise Exception("Index out of range of list bound")
+        else:
+            prev_node=self.get(index-1,node=True)
+            current_node=self.get(index,node=True)
+            prev_node.next=new_node
+            new_node.next=current_node.next
+            current_node.next=None
     def search(self,target):
         temp_node=self.head
         count=0
@@ -86,36 +108,58 @@ class LinkedList:
                 temp_node=temp_node.next
             self.tail=temp_node
             temp_node.next=None
+            return poped_node.value
         self.length-=1
     def pop_first(self):
-        pass
-    def remove(self):
-        pass
+        if self.length==0:
+            return None
+        pop_node=self.head
+        temp=pop_node.next
+        self.head=temp
+        self.length-=1
+        return pop_node.value
+    def remove(self,index):
+        if index==0:
+            self.pop_first()
+        if index==-1:
+            self.pop()
+        if index<-1 or index>=self.length:
+            raise Exception("index out of range")
+        else:
+            temp_node=self.head
+            for _ in range(index-1):
+                temp_node=temp_node.next
+            pop_node=temp_node.next
+            temp_node.next=pop_node.next
+            pop_node.next=None
+            self.length-=1
+            return pop_node.value
+
     def reverse(self):
-        pass
-    def sort(self):
-        pass
+        current = self.head
+        prev_node = None
+        while current:
+            next_node = current.next
+            current.next = prev_node
+            prev_node = current
+            current = next_node
+        self.head,self.tail=self.tail,self.head
     def delete_all(self):
-        pass
-    def set(self):
-        pass
+        self.head=self.tail=None
+        self.length=0
+    def sort(self):
+       pass
     def remove_duplicates(self):
-        pass
-l=LinkedList()
-l.append(1)
-l.append(2)
-l.append(4)
-l.append(5)
-l.append(6)
-l.append(7)
-l.append(8)
-l.append(9)
-# l.prepend(90)
-# l.insert(4,109)
-# print(l.length)
-# print(l)
-# print(l.get(3))
-# l.search(4)
-# l.traverse()
-l.pop()
-print(l)
+        current=self.head
+        if current is None:
+            return None
+        node_values=set()
+        node_values.add(current.value)
+        while current.next:
+            if current.next.value in node_values:
+                current.next=current.next.next
+                self.length-=1
+            else:
+                node_values.add(current.next.value)
+                current=current.next
+        self.tail=current
