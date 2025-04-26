@@ -106,3 +106,14 @@ For C operations: Uses OpenMP for parallel processing (multi-threading)
 For Python utilities: Uses Python's threading module for parallel file operations
 
 # Here are some screenshots for C's split_csv_utils_main.c and python's move_files screenshots
+
+## split_csv_utils_main.c inputs:
+
+![Image](https://github.com/user-attachments/assets/8e41f607-f2ec-499f-8bdd-df7d9e037dbb)
+
+## output statistics:
+
+![Image](https://github.com/user-attachments/assets/bfcfa806-12b0-4227-87ac-bc52fc02da09)
+
+## move_files.py
+![Image](https://github.com/user-attachments/assets/f6c0c457-b6f6-4244-8ff8-e2736016c9a4)
