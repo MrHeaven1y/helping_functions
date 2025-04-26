@@ -71,7 +71,7 @@ int main() {
     cleanup_csv_utils();
     return 0;
 }
-
+```c
 
 Python Utilities
 The repository includes Python scripts to help with CSV processing:
