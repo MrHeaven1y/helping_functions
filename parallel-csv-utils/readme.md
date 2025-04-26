@@ -104,3 +104,5 @@ The library is optimized for multi-core systems and can achieve near-linear scal
 For C operations: Uses OpenMP for parallel processing (multi-threading)
 
 For Python utilities: Uses Python's threading module for parallel file operations
+
+# Here are some screenshots for C's split_csv_utils_main.c and python's move_files screenshots
